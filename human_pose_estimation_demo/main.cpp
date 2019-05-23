@@ -69,6 +69,8 @@ int main(int argc, char* argv[]) {
             std::cout << "To close the application, press 'CTRL+C' or any key with focus on the output window" << std::endl;
         }
 
+        int numImage = 0;
+        double timeSum = 0.0;
         do {
             double t1 = static_cast<double>(cv::getTickCount());
             std::vector<HumanPose> poses = estimator.estimate(image);
@@ -78,6 +80,8 @@ int main(int argc, char* argv[]) {
             } else {
                 inferenceTime = inferenceTime * 0.95 + 0.05 * (t2 - t1) / cv::getTickFrequency() * 1000;
             }
+            numImage++;
+            timeSum += inferenceTime;
             if (FLAGS_r) {
                 for (HumanPose const& pose : poses) {
                     std::stringstream rawPose;
@@ -113,6 +117,10 @@ int main(int argc, char* argv[]) {
                 break;
             }
         } while (cap.read(image));
+
+        if (numImage > 0) {
+            std::cout << "[ INFO ] FPS: " << int(1000.0f / (timeSum / numImage) * 100) / 100.0f << std::endl;
+        }
     }
     catch (const std::exception& error) {
         std::cerr << "[ ERROR ] " << error.what() << std::endl;
